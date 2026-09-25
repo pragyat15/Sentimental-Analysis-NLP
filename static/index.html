@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Undertone — what's beneath the words</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#EEEAE2;
+    --ink-dim:#9A968E;
+    --bg:#11121A;
+    --bg-2:#181A24;
+    --panel:#1B1D28;
+    --line: rgba(238,234,226,0.10);
+    --accent: #8B87F0; /* neutral idle accent */
+    --accent-soft: rgba(139,135,240,0.18);
+
+    --sadness:#5C7CFA;
+    --joy:#FFB84D;
+    --love:#FF6F91;
+    --anger:#E5484D;
+    --fear:#9775FA;
+    --surprise:#20C5C5;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    min-height:100vh;
+    background: radial-gradient(circle at 18% -10%, #23263a 0%, var(--bg) 45%) fixed;
+    color: var(--ink);
+    font-family:'Manrope', sans-serif;
+    display:flex;
+    justify-content:center;
+    padding: 5vh 1.5rem 6vh;
+    overflow-x:hidden;
+  }
+  .stage{
+    width:100%;
+    max-width: 640px;
+  }
+
+  /* ---------- wordmark ---------- */
+  .brand{
+    font-size:0.78rem;
+    letter-spacing:0.16em;
+    color: var(--ink-dim);
+    font-weight:600;
+    margin-bottom: 3.2rem;
+  }
+  .brand span{ color: var(--ink); }
+
+  /* ---------- headline ---------- */
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size: clamp(2.1rem, 6vw, 3rem);
+    line-height:1.12;
+    letter-spacing:-0.01em;
+    margin: 0 0 0.6rem;
+    max-width: 12ch;
+  }
+  .sub{
+    color: var(--ink-dim);
+    font-size:0.98rem;
+    line-height:1.5;
+    max-width: 34ch;
+    margin: 0 0 2.6rem;
+  }
+
+  /* ---------- input area ---------- */
+  .composer{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius: 18px;
+    padding: 1.1rem 1.2rem 1rem;
+    transition: border-color .35s ease, box-shadow .35s ease;
+  }
+  .composer:focus-within{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+  textarea{
+    width:100%;
+    background:none;
+    border:none;
+    outline:none;
+    resize:none;
+    color: var(--ink);
+    font-family:'Manrope', sans-serif;
+    font-size:1.05rem;
+    line-height:1.5;
+    min-height: 4.4rem;
+    padding:0;
+  }
+  textarea::placeholder{ color: #5C5A63; }
+
+  .composer-foot{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:0.6rem;
+    padding-top:0.7rem;
+    border-top:1px solid var(--line);
+  }
+  .count{ font-size:0.78rem; color: var(--ink-dim); }
+
+  button#go{
+    background: var(--ink);
+    color: var(--bg);
+    border:none;
+    border-radius: 999px;
+    padding: 0.62rem 1.3rem;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:0.92rem;
+    cursor:pointer;
+    transition: transform .18s ease, background .3s ease, opacity .2s ease;
+  }
+  button#go:hover{ transform: translateY(-1px); }
+  button#go:active{ transform: translateY(0); }
+  button#go:disabled{ opacity:0.45; cursor:default; transform:none; }
+
+  .status{
+    display:flex; align-items:center; gap:0.45rem;
+    font-size:0.76rem; color: var(--ink-dim);
+  }
+  .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:#5C5A63;
+    transition: background .4s ease;
+  }
+  .dot.up{ background:#3ED17F; box-shadow:0 0 8px #3ED17F; }
+  .dot.down{ background:#E5484D; box-shadow:0 0 8px #E5484D; }
+
+  /* ---------- result stage ---------- */
+  .result{
+    margin-top: 3.4rem;
+    display:none;
+  }
+  .result.show{ display:block; }
+
+  .orb-row{
+    display:flex; align-items:center; gap:1.6rem;
+    margin-bottom:2.1rem;
+  }
+  .orb{
+    --c: var(--accent);
+    width:78px; height:78px; border-radius:50%;
+    background: radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--c) 75%, white 25%), var(--c) 60%, color-mix(in srgb, var(--c) 60%, black 30%) 100%);
+    box-shadow: 0 0 42px -6px var(--c);
+    flex-shrink:0;
+    animation: breathe 3.6s ease-in-out infinite;
+    transition: --c .6s;
+  }
+  @keyframes breathe{
+    0%,100%{ transform: scale(1); }
+    50%{ transform: scale(1.06); }
+  }
+  .orb.thinking{ animation: think 0.9s ease-in-out infinite; }
+  @keyframes think{
+    0%,100%{ transform: scale(0.94); }
+    50%{ transform: scale(1.08); }
+  }
+
+  .result-text .emo{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: 2rem;
+    text-transform:capitalize;
+    display:flex; align-items:baseline; gap:0.5rem;
+  }
+  .result-text .conf{
+    font-size:0.95rem;
+    color: var(--ink-dim);
+    margin-top:0.2rem;
+  }
+  .result-text .conf b{ color: var(--ink); font-weight:700; }
+
+  .spectrum{ display:flex; flex-direction:column; gap:0.6rem; }
+  .row{
+    display:grid;
+    grid-template-columns: 74px 1fr 40px;
+    align-items:center;
+    gap:0.8rem;
+  }
+  .row .label{
+    font-size:0.84rem;
+    color: var(--ink-dim);
+    text-transform:capitalize;
+  }
+  .row.winner .label{ color: var(--ink); font-weight:700; }
+  .track{
+    height:8px;
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .fill{
+    height:100%;
+    width:0%;
+    border-radius:999px;
+    background: var(--bar-c, var(--accent));
+    transition: width 1s cubic-bezier(.2,.8,.2,1);
+  }
+  .row .pct{
+    font-size:0.8rem;
+    color: var(--ink-dim);
+    text-align:right;
+  }
+  .row.winner .pct{ color: var(--ink); font-weight:700; }
+
+  .error{
+    margin-top:1.4rem;
+    font-size:0.88rem;
+    color:#FF9B93;
+    display:none;
+  }
+  .error.show{ display:block; }
+
+  @media (prefers-reduced-motion: reduce){
+    .orb, .orb.thinking{ animation:none; }
+    .fill{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="brand"><span>UNDER</span>TONE</div>
+
+  <h1>What's beneath the words?</h1>
+  <p class="sub">Type a sentence. A small model trained on six emotions will read the tone underneath it.</p>
+
+  <div class="composer">
+    <textarea id="text" maxlength="2000" placeholder="I finally finished the project I've been dreading all week..."></textarea>
+    <div class="composer-foot">
+      <div class="status"><span class="dot" id="dot"></span><span id="statusText">checking model…</span></div>
+      <button id="go">Analyze this</button>
+    </div>
+  </div>
+
+  <div class="error" id="err"></div>
+
+  <div class="result" id="result">
+    <div class="orb-row">
+      <div class="orb" id="orb"></div>
+      <div class="result-text">
+        <div class="emo"><span id="emoji"></span><span id="emoName"></span></div>
+        <div class="conf">confidence <b id="confVal">—</b></div>
+      </div>
+    </div>
+    <div class="spectrum" id="spectrum"></div>
+  </div>
+
+</div>
+
+<script>
+const EMOJI = { sadness:"😢", joy:"😄", love:"💖", anger:"😠", fear:"😨", surprise:"😮" };
+const COLOR = {
+  sadness:"var(--sadness)", joy:"var(--joy)", love:"var(--love)",
+  anger:"var(--anger)", fear:"var(--fear)", surprise:"var(--surprise)"
+};
+const ORDER = ["sadness","joy","love","anger","fear","surprise"];
+
+const $ = id => document.getElementById(id);
+const textEl = $("text"), goBtn = $("go"), dot = $("dot"), statusText = $("statusText");
+const result = $("result"), orb = $("orb"), emoji = $("emoji"), emoName = $("emoName"),
+      confVal = $("confVal"), spectrum = $("spectrum"), errEl = $("err");
+
+// build spectrum rows once
+ORDER.forEach(name => {
+  const row = document.createElement("div");
+  row.className = "row";
+  row.id = "row-" + name;
+  row.innerHTML = `
+    <div class="label">${name}</div>
+    <div class="track"><div class="fill" id="fill-${name}" style="--bar-c:${COLOR[name]}"></div></div>
+    <div class="pct" id="pct-${name}">0%</div>`;
+  spectrum.appendChild(row);
+});
+
+async function checkHealth(){
+  try{
+    const r = await fetch("/health");
+    if(!r.ok) throw new Error();
+    const d = await r.json();
+    dot.className = "dot up";
+    statusText.textContent = d.model_loaded ? "model ready" : "model loading…";
+  }catch(e){
+    dot.className = "dot down";
+    statusText.textContent = "server unreachable";
+  }
+}
+checkHealth();
+
+function resetColor(){
+  document.documentElement.style.setProperty('--accent', '#8B87F0');
+}
+
+goBtn.addEventListener("click", async () => {
+  const text = textEl.value.trim();
+  errEl.classList.remove("show");
+  if(!text){
+    errEl.textContent = "Type something first — even a short sentence works.";
+    errEl.classList.add("show");
+    return;
+  }
+
+  goBtn.disabled = true;
+  orb.classList.add("thinking");
+  const prevLabel = goBtn.textContent;
+  goBtn.textContent = "Reading…";
+
+  try{
+    const r = await fetch("/predict", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ text })
+    });
+    if(!r.ok){
+      const detail = (await r.json().catch(()=>({}))).detail;
+      throw new Error(detail || `Request failed (${r.status})`);
+    }
+    const data = await r.json();
+    render(data);
+  }catch(e){
+    errEl.textContent = e.message || "Something went wrong reaching the model.";
+    errEl.classList.add("show");
+  }finally{
+    goBtn.disabled = false;
+    goBtn.textContent = prevLabel;
+    orb.classList.remove("thinking");
+  }
+});
+
+textEl.addEventListener("keydown", (e) => {
+  if(e.key === "Enter" && (e.metaKey || e.ctrlKey)) goBtn.click();
+});
+
+function render(data){
+  const top = data.predicted_emotion;
+  orb.style.setProperty("--c", COLOR[top]);
+  emoji.textContent = EMOJI[top] || "";
+  emoName.textContent = top;
+  confVal.textContent = (data.confidence * 100).toFixed(1) + "%";
+
+  ORDER.forEach(name => {
+    const p = (data.all_probabilities[name] ?? 0) * 100;
+    document.getElementById(`fill-${name}`).style.width = p.toFixed(1) + "%";
+    document.getElementById(`pct-${name}`).textContent = p.toFixed(1) + "%";
+    document.getElementById(`row-${name}`).classList.toggle("winner", name === top);
+  });
+
+  result.classList.remove("show");
+  requestAnimationFrame(() => {
+    result.classList.add("show");
+    result.style.animation = "none";
+    void result.offsetWidth;
+    result.style.animation = "";
+  });
+  result.scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+</script>
+</body>
+</html>
